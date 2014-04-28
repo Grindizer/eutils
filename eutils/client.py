@@ -40,17 +40,19 @@ class Client(object):
         return EInfoDB( self._qs.einfo({'db':db, 'version':'2.0'}) )
         
 
-    def esearch(self,db,term):
+    def esearch(self, db, term, **kw):
         """query the esearch endpoint
         """
-        return ESearchResults( self._qs.esearch({'db':db,'term':term}) )
+        kw.update({'db':db,'term':term})
+        return ESearchResults( self._qs.esearch(kw) )
 
 
-    def efetch(self,db,id):
+    def efetch(self, db, id, **kw):
         """query the efetch endpoint
         """
+        kw.update({'db':db,'id':str(id)})
         db = db.lower()
-        xml = self._qs.efetch({'db':db,'id':str(id)})
+        xml = self._qs.efetch(kw)
         if db in ['gene']:
             return Gene(xml)
         if db in ['nuccore']:

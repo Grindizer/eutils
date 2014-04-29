@@ -14,9 +14,8 @@ with open(os.path.join(root_dir, 'doc/description.txt')) as f:
 setup(
     license = 'Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)',
     long_description = long_description,
-    use_hg_version = True,
     zip_safe = True,
-
+    version = '0.0.1',
     author = 'Reece Hart',
     author_email='reecehart+eutils@gmail.com',
     description = """Structured Python interface to NCBI E-Utilities.""",
@@ -49,7 +48,6 @@ setup(
         ],
 
     setup_requires = [
-        'hgtools',
         'nose',
         ],
 

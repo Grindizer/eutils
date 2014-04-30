@@ -72,6 +72,17 @@ class PubMedArticle(eutils.xmlfacades.base.Base):
             or xml_get_text(self._xmlroot,'/PubmedArticleSet/PubmedArticle/MedlineCitation/Article/Journal/JournalIssue/PubDate/MedlineDate')[0:4]
             )
 
+    @property
+    def affiliation(self):
+        return (
+            xml_get_text_or_none(self._xmlroot,'/PubmedArticleSet/PubmedArticle/MedlineCitation/Article/AuthorList//Affiliation')
+            or xml_get_text_or_none(self._xmlroot, '/PubmedArticleSet/PubmedArticle/MedlineCitation/MedlineJournalInfo/Country')
+        )
+
+    @property
+    def country(self):
+        return xml_get_text_or_none(self._xmlroot, '/PubmedArticleSet/PubmedArticle/MedlineCitation/MedlineJournalInfo/Country')
+
     def as_dict(self):
         return {
             'pmid': self.pmid,
@@ -84,6 +95,28 @@ class PubMedArticle(eutils.xmlfacades.base.Base):
             'title': self.title,
             'mesh_headings': self.mesh_headings,
             'abstract': self.abstract,
+            'affiliation': self.affiliation,
+            'country': self.country
             }
+
+
+class PubMedArticleSet(eutils.xmlfacades.base.Base):
+    def __init__(self, xml):
+        super(PubMedArticleSet, self).__init__(xml=xml)
+        self._xmlroot = le.XML(xml)
+        self.articles = self._xmlroot.findall('PubmedArticle')
+
+    def __getitem__(self, item):
+        article = self.articles[item]
+        return PubMedArticle(root=article)
+
+    def __iter__(self):
+        # TODO this should be fixed, to perform search
+        # on the entire document
+        # for now this hack allow keep using PubMedArticle as it is.
+        for article in self.articles:
+            new_elem = le.Element('PubmedArticleSet')
+            new_elem.append(article)
+            yield PubMedArticle(root=new_elem)
 
 

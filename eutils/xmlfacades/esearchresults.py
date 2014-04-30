@@ -36,6 +36,10 @@ class ESearchResults(Base):
     def webenv(self):
         return self._xmlroot.find('WebEnv').text
 
+    @property
+    def query_key(self):
+        return self._xmlroot.find('QueryKey').text
+
 
     ############################################################################
     ## Internals

@@ -35,7 +35,6 @@ default_email = 'reecehart+eutils@gmail.com'
 default_request_interval = 0.333
 default_cache_path = os.path.join(os.path.expanduser('~'),'.cache','eutils-cache.db')
 
-eastern_tz = pytz.timezone('US/Eastern')
 def time_dep_request_interval(utc_dt=None):
     # From http://www.ncbi.nlm.nih.gov/books/NBK25497/:
     # "In order not to overload the E-utility servers, NCBI recommends that
@@ -43,6 +42,7 @@ def time_dep_request_interval(utc_dt=None):
     # large jobs to either weekends or between 9:00 PM and 5:00 AM Eastern
     # time during weekdays."
     # Translation: Weekdays 0500-2100 => 0.333s between requests; no throttle otherwise
+    eastern_tz = pytz.timezone('US/Eastern')
     if utc_dt is None:
         utc_dt = datetime.datetime.utcnow()
     eastern_dt = eastern_tz.fromutc( utc_dt )
@@ -67,6 +67,7 @@ class QueryService(object):
         self._cache = SQLiteCache(cache_path) if cache_path else None
         self._ident_args = { 'tool': tool, 'email': email }
         self._request_count = 0
+        self.session = requests.Session()
 
 
     def efetch(self,args={}):
@@ -93,7 +94,7 @@ class QueryService(object):
 
     ############################################################################
     ## Internals
-    def _fetch(self,path,args={},skip_cache=False,skip_sleep=False):
+    def _fetch(self,path,args={},skip_cache=False,skip_sleep=True):
         """return results for a NCBI query, possibly from the cache
 
         :param: path: relative query path (e.g., 'einfo.fcgi')
@@ -117,7 +118,6 @@ class QueryService(object):
         cache_key = hashlib.md5( cPickle.dumps((url,sorted(defining_args.items()))) ).hexdigest()
         sqas = ';'.join([k+'='+str(v) for k,v in sorted(args.items())])
         full_args_str = ';'.join([k+'='+str(v) for k,v in sorted(full_args.items())])
-
         if not skip_cache and self._cache:
             try:
                 v = self._cache[cache_key]
@@ -135,7 +135,7 @@ class QueryService(object):
             if sleep_time > 0:
                 self._logger.debug('sleeping {sleep_time:.3f}'.format(sleep_time=sleep_time))
                 time.sleep(sleep_time)
-        r = requests.post(url,full_args) 
+        r = self.session.post(url,full_args)
         self._last_request_clock = time.clock()
         self._logger.debug('post({url}, {fas}): {r.status_code} {r.reason}, {len})'.format(
             url=url,fas=full_args_str,r=r,len=len(r.text)))

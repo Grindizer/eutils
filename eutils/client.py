@@ -7,7 +7,7 @@ from eutils.xmlfacades.einfo import EInfo, EInfoDB
 from eutils.xmlfacades.esearchresults import ESearchResults
 from eutils.xmlfacades.gbset import GBSet
 from eutils.xmlfacades.gene import Gene
-from eutils.xmlfacades.pubmed import PubMedArticle
+from eutils.xmlfacades.pubmed import PubMedArticle, PubMedArticleSet
 
 default_cache_path = os.path.join(os.path.expanduser('~'),'.cache','eutils-cache.db')
 
@@ -16,9 +16,10 @@ class Client(object):
 
     def __init__(self,
                  cache_path=default_cache_path,
+                 request_interval=0.4
                  ):
-        self._qs = QueryService(cache_path=cache_path)
-        self.databases = self.einfo().databases
+        self._qs = QueryService(cache_path=cache_path, request_interval=request_interval)
+        #self.databases = self.einfo().databases
 
 
     def einfo(self,db=None):
@@ -47,11 +48,15 @@ class Client(object):
         return ESearchResults( self._qs.esearch(kw) )
 
 
-    def efetch(self, db, id, **kw):
+    def efetch(self, db, id=None, webenv=None, query_key=None, **kw):
         """query the efetch endpoint
         """
-        kw.update({'db':db,'id':str(id)})
         db = db.lower()
+        kw.update({'db':db})
+        if id:
+            kw.update({'id': id})
+        else:
+            kw.update({'webenv': webenv, 'query_key': query_key})
         xml = self._qs.efetch(kw)
         if db in ['gene']:
             return Gene(xml)
@@ -59,7 +64,7 @@ class Client(object):
             # TODO: GBSet is misnamed; it should be GBSeq and get the GBSeq XML node as root (see gbset.py)
             return GBSet(xml)
         if db in ['pubmed']:
-            return PubMedArticle(xml)
+            return PubMedArticleSet(xml)
         if db in ['snp']:
             return ExchangeSet(xml)
         raise EutilsError('database {db} is not currently supported by eutils'.format(db=db))

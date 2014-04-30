@@ -2,9 +2,9 @@ import lxml.etree
 
 class Base(object):
 
-    def __init__(self,xml):
+    def __init__(self, xml=None, root=None):
         self._xml = xml
-        self._xmlroot = lxml.etree.XML(xml)
+        self._xmlroot = root if root else lxml.etree.XML(xml)
 
     def __str__(self):
         return unicode(self).encode('utf-8')

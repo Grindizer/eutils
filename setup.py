@@ -15,7 +15,7 @@ setup(
     license = 'Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)',
     long_description = long_description,
     zip_safe = True,
-    version = '0.0.1',
+    version = '0.0.6',
     author = 'Reece Hart',
     author_email='reecehart+eutils@gmail.com',
     description = """Structured Python interface to NCBI E-Utilities.""",
